@@ -97,7 +97,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         layui.each(resp, function (i, e) {
             (typeof e === "object" || typeof e === "array") ?
                 $.each(e, function (_i, _e) {
-                    if(_e.toString().indexOf(_config.filter) > -1) {
+                    if(_e && _e.toString().indexOf(_config.filter) > -1) {
                         _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
                         return false;
                     }
