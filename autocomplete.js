@@ -43,7 +43,9 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             code: 'code',
             data: 'content'
         },
+        time_limit: 500,
         ajax: [],
+        _ajax: null,
         data: [],
         filter: ''
     },
@@ -111,8 +113,11 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _dom = _container.find('dl');
         _elem.on('focus', function () {
             _config.filter = this.value, _config.cache ? _self.pullData() : _self.renderData(_config.data[_self.index])
-        }).on('input propertychange', function () {
-            _config.filter = this.value, _self.pullData()
+        }).on('input propertychange', function (e) {
+            var _value = this.value;
+            clearTimeout(_config._ajax), _config._ajax = setTimeout(function () {
+                _config.filter = _value, _self.pullData()
+            }, _config.time_limit)
         }),
         $(document).on('click', function (e) {
             var _target = e.target, _item = _dom.find(_target), _e = _item.length > 0 ? _item.closest('dd') : undefined;
