@@ -1,6 +1,5 @@
 layui.define(['jquery', 'laytpl', 'layer'], function (e) {
     "use strict";
-    layui.link('/resource/css/autocomplete.css');
     var hint = layui.hint(),
         $ = layui.jquery,
         laytpl = layui.laytpl,
@@ -65,19 +64,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
         if (!_config.filter) return _self.renderData([]);
-        if (_config.cache && _config.data[_self.index]) {
-        	var arr = [];
-        	layui.each(_config.data[_self.index], function (i, e) {
-        		if (typeof e === "string") e = new Array(e);
-    			layui.each(e, function (_i, _e) {
-                    if(_e && _e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
-                        arr.push(e);
-                        return false;
-                    } 
-                });
-        	});
-        	return _self.renderData(arr);
-        }
         if (_config.cache && _config.ajax[_self.index] != undefined) return;
         (!_config.cache && _config.ajax[_self.index] != undefined) && _config.ajax[_self.index].abort(), _config.ajax[_self.index] = $.ajax({
             type: _config.method || "get",
@@ -105,9 +91,13 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl'),
             _list = [];
-
         layui.each(resp, function (i, e) {
-            _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+            layui.each(e, function (_i, _e) {
+                if(_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+                    _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+                    return true;
+                }
+            });
         });
         _dom.html(_list.join('')), _list.length > 0 ? _container.addClass(container_focus) : _container.removeClass(container_focus)
     },
@@ -118,7 +108,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
         _elem.on('focus', function () {
-            _config.filter = this.value, _config.cache ? _self.pullData() : _self.renderData(_config.data[_self.index])
+            _config.filter = this.value, _self.renderData(_config.data[_self.index])
         }).on('input propertychange', function (e) {
             var _value = this.value;
             clearTimeout(_config._ajax), _config._ajax = setTimeout(function () {
