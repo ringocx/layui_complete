@@ -64,7 +64,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
         if (!_config.filter) return _self.renderData([]);
-        if (_config.cache && _config.ajax[_self.index] != undefined) return;
+        if (_config.cache && _config.data[_self.index]) return _self.renderData(_config.data[_self.index]);
         (!_config.cache && _config.ajax[_self.index] != undefined) && _config.ajax[_self.index].abort(), _config.ajax[_self.index] = $.ajax({
             type: _config.method || "get",
             url: _config.url,
