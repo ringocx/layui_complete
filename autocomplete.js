@@ -54,7 +54,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         var _elem = _config.elem,
             _container = _elem.next('.' + container),
             _html = _self.elem = $(laytpl(_config.template).render({}));
-        _config.id = _self.id, _container[0] && _container.remove(), _elem.attr('autocomplete', 'off'), _elem.after(_html);
+        _config.id = _self.id, _container && _container.remove(), _elem.attr('autocomplete', 'off'), _elem.after(_html);
         _self.events()
     },
     job.prototype.pullData = function () {
