@@ -92,7 +92,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl'),
             _list = [];
-        console.log(_config.temp_data);
         _config.temp_data[_self.index] = [];
         layui.each(resp, function (i, e) {
             layui.each(e, function (_i, _e) {
