@@ -17,7 +17,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
                 cache: false
             },
             index: layui.autocomplete ? layui.autocomplete.index + 1e4: 0,
-            data: {},
+            data: {}
         },
         callback = function() {
             var _self = this,
@@ -45,7 +45,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         time_limit: 500,
         ajax: [],
         _ajax: null,
-        data: [],
+        data: {},
+        temp_data: {},
         filter: ''
     },
     job.prototype.render = function() {
@@ -91,10 +92,12 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl'),
             _list = [];
+        console.log(_config.temp_data);
+        _config.temp_data[_self.index] = [];
         layui.each(resp, function (i, e) {
             layui.each(e, function (_i, _e) {
                 if(_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
-                    _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+                    _config.temp_data[_self.index].push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
                     return true;
                 }
             });
@@ -120,7 +123,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             if (_target === _elem[0]) return false;
             if (_e !== undefined) {
                 if (_e.attr('autocomplete-load') !== undefined) return false;
-                _elem.val(laytpl(_config.template_val).render(_config.data[_self.index][_e.index()])), _config.onselect == undefined || _config.onselect(_config.data[_self.index][_e.index()])
+                var curr_data = _config.temp_data[_self.index][_e.index()]
+                _elem.val(laytpl(_config.template_val).render(curr_data)), _config.onselect == undefined || _config.onselect(curr_data)
             }
             _container.removeClass(container_focus);
         })
