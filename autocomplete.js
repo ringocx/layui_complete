@@ -31,6 +31,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             var _self = this;
             _self.index = ++system.index,
             _self.config = $.extend({}, _self.config, system.config, e),
+            console.log(e)
             _self.render()
         };
     job.prototype.config = {
@@ -47,7 +48,9 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         _ajax: null,
         data: {},
         temp_data: {},
-        filter: ''
+        params: {},
+        filter: '',
+        method: 'get',
     },
     job.prototype.render = function() {
         var _self = this, _config = _self.config;
@@ -64,12 +67,13 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _elem = _config.elem,
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
+        console.log(_config)
         if (!_config.filter) return _self.renderData([]);
         if (_config.cache && _config.data[_self.index]) return _self.renderData(_config.data[_self.index]);
         (!_config.cache && _config.ajax[_self.index] != undefined) && _config.ajax[_self.index].abort(), _config.ajax[_self.index] = $.ajax({
             type: _config.method || "get",
             url: _config.url,
-            data: {keywords: _config.filter},
+            data: Object.assign({keywords: _config.filter}, _config.params),
             dataType: "json",
             beforeSend: function () {
                 _container.addClass(container_focus), _dom.html(['<dd style="text-align: center" autocomplete-load>', _config.text.loading, '</dd>'].join(''))
