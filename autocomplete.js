@@ -31,7 +31,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             var _self = this;
             _self.index = ++system.index,
             _self.config = $.extend({}, _self.config, system.config, e),
-            console.log(e)
             _self.render()
         };
     job.prototype.config = {
