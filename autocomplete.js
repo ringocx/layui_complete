@@ -72,6 +72,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             type: _config.method || "get",
             url: _config.url,
             data: $.extend({keywords: _config.filter, t: new Date().getTime()}, _config.params),
+            contentType: 'text/json,charset=utf-8',
             dataType: "json",
             beforeSend: function () {
                 _container.addClass(container_focus), _dom.html(['<dd style="text-align: center" autocomplete-load>', _config.text.loading, '</dd>'].join(''))
@@ -96,12 +97,18 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _list = [];
         _config.temp_data[_self.index] = [];
         layui.each(resp, function (i, e) {
-            layui.each(e, function (_i, _e) {
-                if(_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+            if (e instanceof Object) {
+                layui.each(e, function (_i, _e) {
+                    if(_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+                        _config.temp_data[_self.index].push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+                        return true;
+                    }
+                });
+            } else {
+                if(e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
                     _config.temp_data[_self.index].push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
-                    return true;
                 }
-            });
+            }
         });
         _dom.html(_list.join('')), _list.length > 0 ? _container.addClass(container_focus) : _container.removeClass(container_focus)
     },
@@ -111,7 +118,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _elem = _config.elem,
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
-        _elem.on('focus', function () {
+        _elem.unbind('focus').unbind('input propertychange').on('focus', function () {
             _config.filter = this.value, _self.renderData(_config.data[_self.index])
         }).on('input propertychange', function (e) {
             var _value = this.value;
