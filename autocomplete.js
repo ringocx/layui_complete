@@ -42,6 +42,9 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             code: 'code',
             data: 'content'
         },
+        request: {
+            keywords: 'keywords'
+        },
         time_limit: 500,
         ajax: [],
         _ajax: null,
@@ -50,6 +53,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         params: {},
         filter: '',
         method: 'get',
+        ajaxParams: {}
     },
     job.prototype.render = function() {
         var _self = this, _config = _self.config;
@@ -68,10 +72,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _dom = _container.find('dl');
         if (!_config.filter) return _self.renderData([]);
         if (_config.cache && _config.data[_self.index]) return _self.renderData(_config.data[_self.index]);
-        (!_config.cache && _config.ajax[_self.index] != undefined) && _config.ajax[_self.index].abort(), _config.ajax[_self.index] = $.ajax({
+        (!_config.cache && _config.ajax[_self.index] != undefined) && _config.ajax[_self.index].abort(), _config.ajax[_self.index] = $.ajax($.extend({
             type: _config.method || "get",
             url: _config.url,
-            data: $.extend({keywords: _config.filter, t: new Date().getTime()}, _config.params),
+            data: $.extend({[_config.request.keywords]: _config.filter, t: new Date().getTime()}, _config.params),
             contentType: 'text/json,charset=utf-8',
             dataType: "json",
             beforeSend: function () {
@@ -86,7 +90,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             complete: function () {
                 delete _config.ajax[_self.index]
             }
-        })
+        }, _config.ajaxParams))
     },
     job.prototype.renderData = function (resp) {
         var _self = this,
