@@ -16,22 +16,22 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
                 template_val: '{{d.value}}',
                 cache: false
             },
-            index: layui.autocomplete ? layui.autocomplete.index + 1e4: 0,
             data: {}
         },
         callback = function() {
             var _self = this,
-                _config = _self.config,
-                _id = _config.id;
-            return _id && (callback.config[_id] = _config), {
-                config: _self.config
+                _config = _self.config;
+            return {
+            	call: function (handle, params) {
+            		if (!_self.handles[handle]) return hint.error(handle + " handle is not defined");
+            		_self.handles[handle].call(_self, params)
+            	}
             }
         },
         job = function(e) {
             var _self = this;
-            _self.index = ++system.index,
-            _self.config = $.extend({}, _self.config, system.config, e),
-            _self.render()
+            _self.config = $.extend({}, _self.config, system.config, e);
+            _self.render();
         };
     job.prototype.config = {
         text: {
@@ -46,8 +46,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             keywords: 'keywords'
         },
         time_limit: 500,
-        ajax: [],
-        _ajax: null,
+        pullTimer: null,
         data: {},
         temp_data: {},
         params: {},
@@ -71,8 +70,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
         if (!_config.filter) return _self.renderData([]);
-        if (_config.cache && _config.data[_self.index]) return _self.renderData(_config.data[_self.index]);
-        (!_config.cache && _config.ajax[_self.index] != undefined) && _config.ajax[_self.index].abort(), _config.ajax[_self.index] = $.ajax($.extend({
+        if (_config.cache && Object.keys(_config.data).length > 0) return _self.renderData(_config.data);
+        $.ajax($.extend({
             type: _config.method || "get",
             url: _config.url,
             data: $.extend({[_config.request.keywords]: _config.filter, t: new Date().getTime()}, _config.params),
@@ -82,13 +81,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
                 _container.addClass(container_focus), _dom.html(['<dd style="text-align: center" autocomplete-load>', _config.text.loading, '</dd>'].join(''))
             },
             success: function (resp) {
-                return 0 != eval('resp.' + _config.response.code) ? layer.msg(eval('resp.' + _config.response.data)) : _config.data[_self.index] = eval('resp.' + _config.response.data), _self.renderData(_config.data[_self.index])
+                return 0 != eval('resp.' + _config.response.code) ? layer.msg(eval('resp.' + _config.response.data)) : _config.data = eval('resp.' + _config.response.data), _self.renderData(_config.data)
             },
             error: function () {
                 hint.error("请求失败")
-            },
-            complete: function () {
-                delete _config.ajax[_self.index]
             }
         }, _config.ajaxParams))
     },
@@ -99,22 +95,42 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl'),
             _list = [];
-        _config.temp_data[_self.index] = [];
+        _config.temp_data = [];
         layui.each(resp, function (i, e) {
-            if (e instanceof Object) {
-                layui.each(e, function (_i, _e) {
-                    if(_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
-                        _config.temp_data[_self.index].push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
-                        return true;
-                    }
-                });
-            } else {
-                if(e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
-                    _config.temp_data[_self.index].push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
-                }
-            }
+        	if (_config.cache) {
+        		if (e instanceof Object) {
+	                layui.each(e, function (_i, _e) {
+	                    if(_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+	                        _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+	                        return true;
+	                    }
+	                });
+	            } else {
+	                if(e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+	                    _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+	                }
+	            }
+        	} else {
+        		_config.temp_data.push(e), _list.push(laytpl(_config.layout).render({index: i, text: laytpl(_config.template_txt).render(e)}));
+        	}
         });
         _dom.html(_list.join('')), _list.length > 0 ? _container.addClass(container_focus) : _container.removeClass(container_focus)
+    },
+    job.prototype.handles = {
+    	addData (data) {
+    		var _self = this,
+    			_config = _self.config;
+			if (data instanceof Array) {
+				_config.data = _config.data.concat(data)
+			} else {
+				_config.data.push(data)
+			}
+    	},
+        setData (data) {
+            var _self = this,
+                _config = _self.config;
+            _config.data = data;
+        }
     },
     job.prototype.events = function () {
         var _self = this,
@@ -123,10 +139,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             _container = _elem.next('.' + container),
             _dom = _container.find('dl');
         _elem.unbind('focus').unbind('input propertychange').on('focus', function () {
-            _config.filter = this.value, _self.renderData(_config.data[_self.index])
+            _config.filter = this.value, _self.renderData(_config.data)
         }).on('input propertychange', function (e) {
             var _value = this.value;
-            clearTimeout(_config._ajax), _config._ajax = setTimeout(function () {
+            clearTimeout(_config.pullTimer), _config.pullTimer = setTimeout(function () {
                 _config.filter = _value, _self.pullData()
             }, _config.time_limit)
         }),
@@ -135,14 +151,12 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             if (_target === _elem[0]) return false;
             if (_e !== undefined) {
                 if (_e.attr('autocomplete-load') !== undefined) return false;
-                var curr_data = _config.temp_data[_self.index][_e.index()]
+                var curr_data = _config.temp_data[_e.index()]
                 _elem.val(laytpl(_config.template_val).render(curr_data)), _config.onselect == undefined || _config.onselect(curr_data)
             }
             _container.removeClass(container_focus);
         })
     };
-    callback.config = {},
-    callback.job = {},
     system.init = function (e, c) {
         var c = c || {}, _self = this, _elems = $(e ? 'input[lay-filter="' + e + '"]': 'input[' + filter + ']');
         _elems.each(function (_i, _e) {
