@@ -79,7 +79,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       contentType: 'text/json,charset=utf-8',
       dataType: "json",
       beforeSend: function () {
-        _container.addClass(container_focus);
         $loading.attr('style', [
           'position:absolute', 
           'left:' + (_elem.offset().left + _elem.outerWidth() - 20) + 'px', 
