@@ -71,11 +71,12 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       t: new Date().getTime()
     }
     params[keywords] = _config.filter;
+
     var $loading = $('<i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>');
     $.ajax($.extend({
       type: _config.method,
       url: _config.url,
-      data: $.extend(params, _config.params),
+      data: $.extend(params, _config.params instanceof Function ? _config.params() :_config.params),
       contentType: 'text/json,charset=utf-8',
       dataType: "json",
       beforeSend: function () {
@@ -90,7 +91,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       },
       success: function (resp) {
         $loading.remove();
-        return 0 != eval('resp.' + _config.response.code) ? layer.msg(eval('resp.' + _config.response.data)) : _config.data = eval('resp.' + _config.response.data), _self.renderData(_config.data)
+        return 0 != resp[_config.response.code] ? layer.msg(resp[_config.response.data]) : _config.data = resp[_config.response.data], _self.renderData(_config.data)
       },
       error: function () {
         hint.error("请求失败")
