@@ -36,11 +36,13 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
   job.prototype.config = {
     response: {
       code: 'code',
-      data: 'content'
+      data: 'data',
+      msg: 'msg'
     },
     request: {
       keywords: 'keywords'
     },
+    statusCode: 0,
     time_limit: 300,
     pullTimer: null,
     data: {},
@@ -65,7 +67,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _elem = _config.elem,
       _container = _elem.next('.' + container);
     if (!_config.filter) return _self.renderData([]);
-    if ((_config.cache || !_config.url) && Object.keys(_config.data).length > 0) return _self.renderData(_config.data);
+    if ((_config.cache || !_config.url) && _config.data instanceof Object && Object.keys(_config.data).length > 0) return _self.renderData(_config.data);
     var keywords = _config.request.keywords
     var params = {
       t: new Date().getTime()
@@ -91,7 +93,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       },
       success: function (resp) {
         $loading.remove();
-        return 0 != resp[_config.response.code] ? layer.msg(resp[_config.response.data]) : _config.data = resp[_config.response.data], _self.renderData(_config.data)
+        console.log(_config.statusCode, resp[_config.response.code]);
+        return _config.statusCode != resp[_config.response.code] ? layer.msg(resp[_config.response.msg]) : _config.data = resp[_config.response.data], _self.renderData(_config.data)
       },
       error: function () {
         hint.error("请求失败")
