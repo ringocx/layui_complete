@@ -113,13 +113,13 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       if (_config.cache) {
         if (e instanceof Object) {
           layui.each(e, function (_i, _e) {
-            if (_e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+            if (_e && _e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
               _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({ index: i, text: laytpl(_config.template_txt).render(e) }));
               return true;
             }
           });
         } else {
-          if (e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+          if (_e && e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
             _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({ index: i, text: laytpl(_config.template_txt).render(e) }));
           }
         }
