@@ -93,7 +93,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       },
       success: function (resp) {
         $loading.remove();
-        console.log(_config.statusCode, resp[_config.response.code]);
         return _config.statusCode != resp[_config.response.code] ? layer.msg(resp[_config.response.msg]) : _config.data = resp[_config.response.data], _self.renderData(_config.data)
       },
       error: function () {
@@ -119,7 +118,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             }
           });
         } else {
-          if (_e && e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+          if (e && e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
             _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({ index: i, text: laytpl(_config.template_txt).render(e) }));
           }
         }
