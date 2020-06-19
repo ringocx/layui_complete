@@ -126,11 +126,13 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         $loading.appendTo('body');
       },
       success: function (resp) {
-        $loading.remove();
         return _config.statusCode != resp[_config.response.code] ? layer.msg(resp[_config.response.msg]) : _config.data = resp[_config.response.data], _self.renderData(_config.data)
       },
       error: function () {
-        hint.error("请求失败")
+        hint.error("请求失败");
+      },
+      complete: function () {
+        $loading.remove();
       }
     }, _config.ajaxParams))
   }
