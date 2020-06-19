@@ -42,9 +42,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
     filter = 'layui-autocomplete',
     container = 'layui-form-autocomplete',
     container_focus = 'layui-form-autocomplete-focus',
+    container_list = 'layui-anim layui-anim-upbit',
     system = {
       config: {
-        template: ['<div class="layui-form-autocomplete">', '<dl class="layui-anim layui-anim-upbit">', '</dl>', '</div>'].join(''),
+        template: ['<div class="' + container + '">', '<dl class="' + container_list + '">', '</dl>', '</div>'].join(''),
         layout: ['<dd data-index="{{d.index}}">{{d.text}}</dd>'].join(''),
         template_txt: '{{d.text}}',
         template_val: '{{d.value}}',
@@ -185,14 +186,43 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _config = _self.config,
       _elem = _config.elem,
       _container = _elem.next('.' + container),
-      _dom = _container.find('dl');
+      _dom = _container.find('dl'),
+      _selectIndex = -1;
     _elem.unbind('focus').unbind('input propertychange').on('focus', function () {
-      _config.filter = this.value, _self.renderData(_config.data)
+      _selectIndex = -1, _config.filter = this.value, _self.renderData(_config.data)
     }).on('input propertychange', function (e) {
       var _value = this.value;
       clearTimeout(_config.pullTimer), _config.pullTimer = setTimeout(function () {
         _config.filter = _value, _self.pullData()
       }, _config.time_limit)
+    }).on('input keydown', function (e) {
+      var _children = $(_self.elem).children().children('dd')
+      var highlightItem = function () {
+        _children.removeClass('active')
+        _children.eq(_selectIndex).addClass('active')
+      }
+      if (_children.length > 0) {
+        switch (e.keyCode) {
+          case 38:
+            _selectIndex--
+            if (_selectIndex < 0) {
+              _selectIndex = 0;
+            }
+            highlightItem();
+            break;
+          case 40:
+            _selectIndex++
+            if (_selectIndex >= _config.data.length) {
+              _selectIndex = _config.data.length - 1
+            }
+            highlightItem();
+            break;
+          case 13:
+            _children.eq(_selectIndex).click();
+            _selectIndex = -1;
+            break;
+        }
+      }
     })
     $(document).on('click', function (e) {
       var _target = e.target, _item = _dom.find(_target), _e = _item.length > 0 ? _item.closest('dd') : undefined;

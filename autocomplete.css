@@ -3,7 +3,7 @@
 .layui-form-autocomplete dl dd, .layui-form-autocomplete dl dt {padding: 0 10px; line-height: 36px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 .layui-form-autocomplete dl dt {font-size: 12px; color: #999;}
 .layui-form-autocomplete dl dd {cursor: pointer;}
-.layui-form-autocomplete dl dd:hover {background-color: #f2f2f2;}
+.layui-form-autocomplete dl dd:hover,.layui-form-autocomplete .active {background-color: #f2f2f2;}
 .layui-form-autocomplete .layui-autocomplete-group dd {padding-left: 20px;}
 .layui-form-autocomplete dl dd.layui-autocomplete-tips {padding-left: 10px!important; color: #999;}
 .layui-form-autocomplete dl dd.layui-this {background-color: #5FB878; color: #fff;}
