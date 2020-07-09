@@ -81,7 +81,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
     time_limit: 300,
     pullTimer: null,
     data: {},
-    temp_data: {},
     params: {},
     filter: '',
     method: 'get',
@@ -142,28 +141,48 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _config = _self.config,
       _elem = _config.elem,
       _container = _elem.next('.' + container),
-      _dom = _container.find('dl'),
-      _list = [];
-    _config.temp_data = [];
+      _dom = _container.find('dl');
+    
+    var _list = [];
     layui.each(resp, function (i, e) {
       if (_config.cache) {
         if (e instanceof Object) {
           layui.each(e, function (_i, _e) {
             if (_e && _e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
-              _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({ index: i, text: laytpl(_config.template_txt).render(e) }));
+              _list.push(e)
               return true;
             }
-          });
+          })
         } else {
           if (e && e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
-            _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({ index: i, text: laytpl(_config.template_txt).render(e) }));
+            _list.push(e)
           }
         }
       } else {
-        _config.temp_data.push(e), _list.push(laytpl(_config.layout).render({ index: i, text: laytpl(_config.template_txt).render(e) }));
+        _list.push(e)
       }
-    });
-    _dom.html(_list.join('')), _list.length > 0 ? _container.addClass(container_focus) : _container.removeClass(container_focus)
+    })
+    if (_list.length > 0) {
+      _dom.html('')
+      layui.each(_list, function (i, e) {
+        _self.renderItem(i, e)
+      })
+      _container.addClass(container_focus)
+    } else {
+      _container.removeClass(container_focus)
+    }
+  }
+  job.prototype.renderItem = function (index, data) {
+    var _self = this,
+      _config = _self.config,
+      _elem = _config.elem,
+      _container = _elem.next('.' + container),
+      _dom = _container.find('dl');
+    var itemDom = laytpl(_config.layout).render({ index: index, text: laytpl(_config.template_txt).render(data) })
+    $(itemDom).appendTo(_dom).on('click', function () {
+      _elem.val(laytpl(_config.template_val).render(data)), _config.onselect == undefined || _config.onselect(data)
+      _container.removeClass(container_focus)
+    })
   }
   job.prototype.handles = {
     addData: function (data) {
@@ -208,21 +227,21 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
           case 38:
             _selectIndex--
             if (_selectIndex < 0) {
-              _selectIndex = 0;
+              _selectIndex = 0
             }
-            highlightItem();
-            break;
+            highlightItem()
+            break
           case 40:
             _selectIndex++
             if (_selectIndex >= _config.data.length) {
               _selectIndex = _config.data.length - 1
             }
-            highlightItem();
-            break;
+            highlightItem()
+            break
           case 13:
-            _children.eq(_selectIndex).click();
-            _selectIndex = -1;
-            break;
+            _children.eq(_selectIndex).click()
+            _selectIndex = -1
+            break
         }
       }
     })
