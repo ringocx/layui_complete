@@ -168,8 +168,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         _self.renderItem(i, e)
       })
       _container.addClass(container_focus)
-    } else {
-      _container.removeClass(container_focus)
     }
   }
   job.prototype.renderItem = function (index, data) {
@@ -180,9 +178,16 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _dom = _container.find('dl');
     var itemDom = laytpl(_config.layout).render({ index: index, text: laytpl(_config.template_txt).render(data) })
     $(itemDom).appendTo(_dom).on('click', function () {
-      _elem.val(laytpl(_config.template_val).render(data)), _config.onselect == undefined || _config.onselect(data)
-      _container.removeClass(container_focus)
+      _self.selectItem(data)
     })
+  }
+  job.prototype.selectItem = function (data) {
+    var _self = this,
+      _config = _self.config,
+      _elem = _config.elem,
+      _container = _elem.next('.' + container);
+    _elem.val(laytpl(_config.template_val).render(data)), _config.onselect == undefined || _config.onselect(data)
+    _container.removeClass(container_focus)
   }
   job.prototype.handles = {
     addData: function (data) {
@@ -207,12 +212,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _container = _elem.next('.' + container),
       _dom = _container.find('dl'),
       _selectIndex = -1;
-    _elem.unbind('blur').unbind('focus').unbind('input propertychange').unbind('input keydown').on('focus', function () {
+    _elem.unbind('focus').unbind('blur').unbind('input propertychange').unbind('input keydown').on('focus', function () {
       _selectIndex = -1, _config.filter = this.value, _self.pullData()
-    }).on('blur', function () {
-      _container.removeClass(container_focus)
     }).on('input propertychange', function (e) {
-      var _value = this.value;
+      var _value = this.value
       clearTimeout(_config.pullTimer), _config.pullTimer = setTimeout(function () {
         _config.filter = _value, _self.pullData()
       }, _config.time_limit)
@@ -245,9 +248,16 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         }
       }
     })
+    $(document).on('click', function (e) {
+      var _target = e.target, _item = _dom.find(_target), _e = _item.length > 0 ? _item.closest('dd') : undefined;
+      if (_target === _elem[0]) return false;
+      if (_e !== undefined) return false;
+      _container.removeClass(container_focus);
+    })
   }
   system.init = function (e, c) {
-    var c = c || {}, _self = this, _elems = $(e ? 'input[lay-filter="' + e + '"]' : 'input[' + filter + ']');
+    var c = c || {}, _self = this, _elems = $(e ? 'input[lay-filter="' + e + '"]' : 'input[' + filter + ']')
+    
     _elems.each(function (_i, _e) {
       var _elem = $(_e),
         _lay_data = _elem.attr('lay-data');
