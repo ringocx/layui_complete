@@ -85,7 +85,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
     params: {},
     filter: '',
     method: 'get',
-    ajaxParams: {}
+    ajaxParams: {},
+    char_limit: 1,
   }
   job.prototype.render = function () {
     var _self = this, _config = _self.config;
@@ -99,9 +100,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
   job.prototype.pullData = function () {
     var _self = this,
       _config = _self.config,
-      _elem = _config.elem,
-      _container = _elem.next('.' + container);
-    if (!_config.filter) return _self.renderData([]);
+      _elem = _config.elem;
+    if (_config.filter.length < _config.char_limit) return _self.renderData([]);
     if ((_config.cache || !_config.url) && _config.data instanceof Object && Object.keys(_config.data).length > 0) return _self.renderData(_config.data);
     var keywords = _config.request.keywords
     var params = {
@@ -188,8 +188,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _container = _elem.next('.' + container),
       _dom = _container.find('dl'),
       _selectIndex = -1;
-    _elem.unbind('focus').unbind('input propertychange').on('focus', function () {
-      _selectIndex = -1, _config.filter = this.value, _self.renderData(_config.data)
+    _elem.unbind('blur').unbind('focus').unbind('input propertychange').unbind('input keydown').on('focus', function () {
+      _selectIndex = -1, _config.filter = this.value, _self.pullData()
+    }).on('blur', function () {
+      _container.removeClass(container_focus)
     }).on('input propertychange', function (e) {
       var _value = this.value;
       clearTimeout(_config.pullTimer), _config.pullTimer = setTimeout(function () {
@@ -223,16 +225,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             break;
         }
       }
-    })
-    $(document).on('click', function (e) {
-      var _target = e.target, _item = _dom.find(_target), _e = _item.length > 0 ? _item.closest('dd') : undefined;
-      if (_target === _elem[0]) return false;
-      if (_e !== undefined) {
-        if (_e.attr('autocomplete-load') !== undefined) return false;
-        var curr_data = _config.temp_data[_e.index()]
-        _elem.val(laytpl(_config.template_val).render(curr_data)), _config.onselect == undefined || _config.onselect(curr_data)
-      }
-      _container.removeClass(container_focus);
     })
   }
   system.init = function (e, c) {
