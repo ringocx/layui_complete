@@ -82,10 +82,10 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
     pullTimer: null,
     data: {},
     params: {},
-    filter: '',
     method: 'get',
     ajaxParams: {},
     char_limit: 1,
+    selectIndex: -1
   }
   job.prototype.render = function () {
     var _self = this, _config = _self.config;
@@ -99,14 +99,17 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
   job.prototype.pullData = function () {
     var _self = this,
       _config = _self.config,
-      _elem = _config.elem;
-    if (_config.filter.length < _config.char_limit) return _self.renderData([]);
+      _elem = _config.elem,
+      _value = _elem.val();
+    if (_value.length < _config.char_limit) return _self.renderData([]);
     if ((_config.cache || !_config.url) && _config.data instanceof Object && Object.keys(_config.data).length > 0) return _self.renderData(_config.data);
+    if (_value === _config.filter) return _self.renderData(_config.data)
+    _config.filter = _value
     var keywords = _config.request.keywords
     var params = {
       t: new Date().getTime()
     }
-    params[keywords] = _config.filter;
+    params[keywords] = _value;
 
     var $loading = $('<i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>');
     $.ajax($.extend({
@@ -141,20 +144,21 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _config = _self.config,
       _elem = _config.elem,
       _container = _elem.next('.' + container),
-      _dom = _container.find('dl');
+      _dom = _container.find('dl')
     
     var _list = [];
     layui.each(resp, function (i, e) {
       if (_config.cache) {
+        var _value = _elem.val()
         if (e instanceof Object) {
           layui.each(e, function (_i, _e) {
-            if (_e && _e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+            if (_e && _e.toString().toLowerCase().indexOf(_value.toLowerCase()) > -1) {
               _list.push(e)
               return true;
             }
           })
         } else {
-          if (e && e.toString().toLowerCase().indexOf(_config.filter.toLowerCase()) > -1) {
+          if (e && e.toString().toLowerCase().indexOf(_value.toLowerCase()) > -1) {
             _list.push(e)
           }
         }
@@ -162,12 +166,15 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
         _list.push(e)
       }
     })
+    _dom.html('')
+    _config.selectIndex = -1
     if (_list.length > 0) {
-      _dom.html('')
       layui.each(_list, function (i, e) {
         _self.renderItem(i, e)
       })
       _container.addClass(container_focus)
+    } else {
+      _self.destroy()
     }
   }
   job.prototype.renderItem = function (index, data) {
@@ -187,7 +194,7 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _elem = _config.elem,
       _container = _elem.next('.' + container);
     _elem.val(laytpl(_config.template_val).render(data)), _config.onselect == undefined || _config.onselect(data)
-    _container.removeClass(container_focus)
+    _self.destroy()
   }
   job.prototype.handles = {
     addData: function (data) {
@@ -205,26 +212,33 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _config.data = data;
     }
   }
+  job.prototype.highlightItem = function (index) {
+    var _self = this, _config = _self.config, _children = $(_self.elem).children().children('dd')
+    _config.selectIndex = index
+    _children.removeClass('active')
+    _children.eq(index).addClass('active')
+  }
+  job.prototype.destroy = function () {
+    var _self = this,
+      _config = _self.config,
+      _elem = _config.elem,
+      _container = _elem.next('.' + container),
+      _dom = _container.find('dl')
+
+    _dom.html('')
+    _config.selectIndex = -1
+    _container.removeClass(container_focus)
+  }
   job.prototype.events = function () {
     var _self = this,
       _config = _self.config,
       _elem = _config.elem,
       _container = _elem.next('.' + container),
-      _dom = _container.find('dl'),
-      _selectIndex = -1;
-    _elem.unbind('focus').unbind('blur').unbind('input propertychange').unbind('input keydown').on('focus', function () {
-      _selectIndex = -1, _config.filter = this.value, _self.pullData()
-    }).on('input propertychange', function (e) {
-      var _value = this.value
-      clearTimeout(_config.pullTimer), _config.pullTimer = setTimeout(function () {
-        _config.filter = _value, _self.pullData()
-      }, _config.time_limit)
+      _dom = _container.find('dl');
+    _elem.on('focus', function () {
+      _self.pullData()
     }).on('input keydown', function (e) {
-      var _children = $(_self.elem).children().children('dd')
-      var highlightItem = function () {
-        _children.removeClass('active')
-        _children.eq(_selectIndex).addClass('active')
-      }
+      var _children = $(_self.elem).children().children('dd'), _selectIndex = _config.selectIndex
       if (_children.length > 0) {
         switch (e.keyCode) {
           case 38:
@@ -232,27 +246,32 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
             if (_selectIndex < 0) {
               _selectIndex = 0
             }
-            highlightItem()
-            break
+            _self.highlightItem(_selectIndex)
+            e.preventDefault()
+            return
           case 40:
             _selectIndex++
             if (_selectIndex >= _config.data.length) {
               _selectIndex = _config.data.length - 1
             }
-            highlightItem()
-            break
+            _self.highlightItem(_selectIndex)
+            e.preventDefault()
+            return
           case 13:
             _children.eq(_selectIndex).click()
-            _selectIndex = -1
-            break
+            e.preventDefault()
+            return
         }
       }
+      clearTimeout(_config.pullTimer), _config.pullTimer = setTimeout(function () {
+        _self.pullData()
+      }, _config.time_limit)
     })
     $(document).on('click', function (e) {
       var _target = e.target, _item = _dom.find(_target), _e = _item.length > 0 ? _item.closest('dd') : undefined;
       if (_target === _elem[0]) return false;
       if (_e !== undefined) return false;
-      _container.removeClass(container_focus);
+      _self.destroy()
     })
   }
   system.init = function (e, c) {
