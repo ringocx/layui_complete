@@ -235,6 +235,8 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
       _elem = _config.elem,
       _container = _elem.next('.' + container),
       _dom = _container.find('dl');
+    
+    _elem.unbind('focus').unbind('input keydown')
     _elem.on('focus', function () {
       _self.pullData()
     }).on('input keydown', function (e) {
