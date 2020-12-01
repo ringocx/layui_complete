@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Layui - autocomplete</title>
+  <link rel="stylesheet" href="./assets/js/layui/css/layui.css" />
+</head>
+<style>
+  .container {
+    width: 680px;
+    margin: 0 auto;
+  }
+
+  input {
+    height: 40px;
+    line-height: 40px;
+    border: 1px solid #c1c1c1;
+    padding: 0 5px;
+    width: 300px;
+  }
+
+  .content {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+    word-break: break-all;
+  }
+</style>
+<body>
+  <div class="container">
+    <h2>示例</h2>
+    <input type="text" name="example1" placeholder="请输入" />
+    <div class="content" id="content1"></div>
+    <button id="render">重新Render</button>
+  </div>
+</body>
+<script type="text/javascript" src="./assets/js/layui/layui.js"></script>
+
+<!-- 公共配置第三方组件 -->
+<script type="text/javascript">
+  layui.config({
+    version: false,
+    debug: false,
+    base: './assets/js/layui/extra/'
+  })
+</script>
+
+<script type="text/javascript">
+layui.config({
+  base: './assets/js/layui/extra/'
+}).extend({
+  autocomplete: 'autocomplete/autocomplete'
+}).use(['jquery', 'autocomplete'], function () {
+  var $ = layui.jquery, 
+      autocomplete = layui.autocomplete;
+
+  $('#render').on('click', function () {
+   	auto_render()
+  })
+
+  $('input[name=example1]').on('input keydown', function(e) {
+    if (e.keyCode === 13) {
+      console.log('entry keyboard')
+    }
+  })
+
+  function auto_render() {
+  	var render = autocomplete.render({
+   	  elem: $('input[name=example1]'),
+      url: './json/data.json',
+   	  response: {code: 'code', data: 'data'},
+   	  params: function () {
+   	  	return {
+          random: Math.random()
+        };
+      },
+      statusCode: 200,
+   	  template_val: '{{d}}',
+   	  template_txt: '{{d}}',
+   	  onselect: function (resp) {
+   	  	$('#content1').html("NEW RENDER: " + JSON.stringify(resp));
+   	  }
+   	})
+  }
+
+  auto_render()
+});
+</script>
+</html>

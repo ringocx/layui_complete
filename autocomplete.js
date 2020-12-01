@@ -296,5 +296,6 @@ layui.define(['jquery', 'laytpl', 'layer'], function (e) {
     var j = new job(e);
     return callback.call(j)
   }
+  layui.link(layui.cache.base + 'autocomplete/autocomplete.css')
   system.init(), e(module, system);
 })
